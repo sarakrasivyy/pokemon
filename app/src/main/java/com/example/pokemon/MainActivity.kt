@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import okhttp3.Dispatcher
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
@@ -71,7 +72,7 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener,
 
     override fun onQueryTextSubmit(p0: String?): Boolean {
         if (!p0.isNullOrEmpty()){
-            searbyname(p0.toLowerCase())
+            searbyname(p0.lowercase(Locale.ROOT))
         }
         return true
     }
