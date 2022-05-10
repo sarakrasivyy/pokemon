@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.widget.Adapter
 import android.widget.SearchView
 import android.widget.Toast
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pokemon.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +22,11 @@ import kotlin.coroutines.coroutineContext
 class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener,
     androidx.appcompat.widget.SearchView.OnQueryTextListener {
 
+    private val dogViewModel: DogViewModel by lazy {
+        ViewModelProvider(this)[DogViewModel::class.java]
+    }
+    /*private lateinit var dogViewModel: DogViewModel*/
+
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var adarter: DogAdarter
@@ -30,9 +36,29 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener,
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        //dogViewModel = ViewModelProvider(this)[DogViewModel::class.java]
         setContentView(binding.root)
         binding.dogsi.setOnQueryTextListener(this)
         initRecylerView()
+
+
+        dogViewModel.getDogsLiveData().observe(this){ requestStatusDogs: RequestStatusDogs<List<String>> ->
+            when (requestStatusDogs){
+                is RequestStatusDogs.OnLoading -> {
+                    showStatusMessage("trayendo perritus")
+
+                }
+                is RequestStatusDogs.OnSuccess -> {
+                    dogimages.clear()
+                    dogimages.addAll(requestStatusDogs.data)
+                    adarter.notifyDataSetChanged()
+
+                }
+                is RequestStatusDogs.OnError -> {
+                    showStatusMessage(requestStatusDogs.error)
+                }
+            }
+        }
     }
 
     private fun initRecylerView() {
@@ -40,39 +66,13 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener,
         binding.rcdoggi.layoutManager = LinearLayoutManager(this)
         binding.rcdoggi.adapter = adarter
     }
-
-    private fun getRetrofit(): Retrofit {
-        return Retrofit.Builder().baseUrl("https://dog.ceo/api/breed/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-    private fun searbyname(query: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val call = getRetrofit().create(Apiservice::class.java).getDogbyraza("$query/images")
-            val pupis = call.body()
-            runOnUiThread {
-                if (call.isSuccessful) {
-                    val images: List<String> = pupis?.perritos ?: emptyList()
-                    dogimages.clear()
-                    dogimages.addAll(images)
-                    adarter.notifyDataSetChanged()
-
-
-                } else {
-                    showError()
-                }
-            }
-        }
-    }
-
-    private fun showError() {
-        Toast.makeText(this, "ha ocurrido un error", Toast.LENGTH_SHORT).show()
+    private fun showStatusMessage(mesage: String) {
+        Toast.makeText(this, mesage, Toast.LENGTH_SHORT).show()
     }
 
     override fun onQueryTextSubmit(p0: String?): Boolean {
         if (!p0.isNullOrEmpty()){
-            searbyname(p0.lowercase(Locale.ROOT))
+            dogViewModel.getImagesDogByRaza(p0)
         }
         return true
     }

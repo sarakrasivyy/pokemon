@@ -7,12 +7,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.pokemon.databinding.Item2Binding
 import com.squareup.picasso.Picasso
 
-class DogAdarter(val images: List<String>) : RecyclerView.Adapter<DogAdarter.DogViewHol>() {
+class DogAdarter(private val images: List<String>) : RecyclerView.Adapter<DogAdarter.DogViewHol>() {
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DogViewHol {
-        val LayoutInflater = LayoutInflater.from(parent.context)
-        return DogViewHol(LayoutInflater.inflate(R.layout.item_2, parent, false))
+        return DogViewHol(
+            LayoutInflater.from(parent.context).inflate(R.layout.item_2, parent, false)
+        )
     }
 
     override fun onBindViewHolder(holder: DogViewHol, position: Int) {
